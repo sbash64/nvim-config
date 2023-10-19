@@ -20,32 +20,37 @@ vim.opt.relativenumber = true
 
 vim.keymap.set("n", "<leader>bd", "<cmd>bd<CR>")
 
-require('packer').startup(function(use)
-    use 'wbthomason/packer.nvim'
-    use 'neovim/nvim-lspconfig'
-    use 'hrsh7th/nvim-cmp'
-    use 'hrsh7th/cmp-nvim-lsp'
-    use 'saadparwaiz1/cmp_luasnip'
-    use 'L3MON4D3/LuaSnip'
-    use 'lunarvim/darkplus.nvim'
-    use 'tiagovla/tokyodark.nvim'
-    use 'ckipp01/stylua-nvim'
-    use {
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not vim.loop.fs_stat(lazypath) then
+    vim.fn.system({
+        "git",
+        "clone",
+        "--filter=blob:none",
+        "https://github.com/folke/lazy.nvim.git",
+        "--branch=stable", -- latest stable release
+        lazypath,
+    })
+end
+vim.opt.rtp:prepend(lazypath)
+
+require("lazy").setup({
+    'neovim/nvim-lspconfig',
+    'hrsh7th/nvim-cmp',
+    'hrsh7th/cmp-nvim-lsp',
+    'saadparwaiz1/cmp_luasnip',
+    'L3MON4D3/LuaSnip',
+    'lunarvim/darkplus.nvim',
+    'ckipp01/stylua-nvim',
+    {
         'nvim-treesitter/nvim-treesitter',
-        run = ':TSUpdate'
-    }
-    use {
-        'nvim-telescope/telescope.nvim',
-        requires = { { 'nvim-lua/plenary.nvim' } }
-    }
-    use {
-        'nvim-lualine/lualine.nvim',
-        requires = { 'kyazdani42/nvim-web-devicons', opt = true }
-    }
-    use 'simrat39/rust-tools.nvim'
-    use 'jose-elias-alvarez/null-ls.nvim'
-    use 'ThePrimeagen/vim-be-good'
-end)
+        build = ':TSUpdate'
+    },
+    { 'nvim-telescope/telescope.nvim', branch = '0.1.x', dependencies = { 'nvim-lua/plenary.nvim' } },
+    'nvim-lualine/lualine.nvim',
+    'simrat39/rust-tools.nvim',
+    'jose-elias-alvarez/null-ls.nvim',
+}
+)
 
 local function diagnostic_format(diagnostic)
     if diagnostic.code then
