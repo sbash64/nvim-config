@@ -233,9 +233,6 @@ null_ls.setup({
         null_ls.builtins.formatting["swift_format"].with({
             command = "/home/seth/installed/swift-format-508.0.0/swift-format"
         }),
-        null_ls.builtins.formatting.black.with({
-            command = "/home/seth/installed/black"
-        })
     },
     on_attach = enable_formatting
 })
@@ -251,6 +248,11 @@ require 'lspconfig'.pyright.setup {
     on_attach = enable_lsp_keymaps,
     capabilities = capabilities,
     cmd = { "/home/seth/installed/npm-packages/bin/pyright-langserver", "--stdio" }
+}
+
+require 'lspconfig'.ruff_lsp.setup {
+    on_attach = enable_formatting,
+    capabilities = capabilities
 }
 
 require 'lspconfig'.clangd.setup {
