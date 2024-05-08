@@ -27,7 +27,7 @@ if not vim.loop.fs_stat(lazypath) then
         "clone",
         "--filter=blob:none",
         "https://github.com/folke/lazy.nvim.git",
-        "--branch=stable", -- latest stable release
+        "--branch=stable",
         lazypath,
     })
 end
@@ -48,7 +48,8 @@ require("lazy").setup({
     { 'nvim-telescope/telescope.nvim', branch = '0.1.x', dependencies = { 'nvim-lua/plenary.nvim' } },
     'nvim-lualine/lualine.nvim',
     'simrat39/rust-tools.nvim',
-    'jose-elias-alvarez/null-ls.nvim',
+    'nvimtools/none-ls.nvim',
+    'lewis6991/gitsigns.nvim',
 }
 )
 
@@ -72,43 +73,22 @@ vim.diagnostic.config({
 
 require('lualine').setup {
     options = {
-        --        icons_enabled = true,
-        --        theme = 'auto',
         component_separators = '|',
         section_separators = '',
-        --        disabled_filetypes = {
-        --            statusline = {},
-        --            winbar = {},
-        --        },
-        --        ignore_focus = {},
-        --        always_divide_middle = true,
-        --        globalstatus = false,
-        --        refresh = {
-        --            statusline = 1000,
-        --            tabline = 1000,
-        --            winbar = 1000,
-        --        }
     },
     sections = {
-        --        lualine_a = { 'mode' },
-        --        lualine_b = { 'branch', 'diff', 'diagnostics' },
         lualine_c = { 'buffers' },
-        --        lualine_x = { 'encoding', 'fileformat', 'filetype' },
-        --        lualine_y = { 'progress' },
-        --        lualine_z = { 'location' }
     },
-    --    inactive_sections = {
-    --        lualine_a = {},
-    --        lualine_b = {},
-    --        lualine_c = { 'filename' },
-    --        lualine_x = { 'location' },
-    --        lualine_y = {},
-    --        lualine_z = {}
-    --    },
-    --    tabline = {},
-    --    winbar = {},
-    --    inactive_winbar = {},
-    --    extensions = {}
+}
+
+require('gitsigns').setup {
+    signs = {
+        add = { text = '+' },
+        change = { text = '~' },
+        delete = { text = '_' },
+        topdelete = { text = '‾' },
+        changedelete = { text = '~' },
+    },
 }
 
 vim.keymap.set('n', '<leader>gf', require('telescope.builtin').git_files, { desc = 'Search [G]it [F]iles' })
@@ -118,13 +98,9 @@ vim.keymap.set('n', '<leader>sw', require('telescope.builtin').grep_string, { de
 vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc = '[S]earch by [G]rep' })
 vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
 
--- Add additional capabilities supported by nvim-cmp
-local capabilities = require('cmp_nvim_lsp').default_capabilities()
-
--- luasnip setup
 local luasnip = require 'luasnip'
+luasnip.config.setup {}
 
--- nvim-cmp setup
 local cmp = require 'cmp'
 cmp.setup {
     snippet = {
@@ -132,33 +108,24 @@ cmp.setup {
             luasnip.lsp_expand(args.body)
         end,
     },
-    mapping = cmp.mapping.preset.insert({
-        ['<C-d>'] = cmp.mapping.scroll_docs(-4),
+    mapping = cmp.mapping.preset.insert {
+        ['<C-n>'] = cmp.mapping.select_next_item(),
+        ['<C-p>'] = cmp.mapping.select_prev_item(),
+        ['<C-b>'] = cmp.mapping.scroll_docs(-4),
         ['<C-f>'] = cmp.mapping.scroll_docs(4),
-        ['<C-Space>'] = cmp.mapping.complete(),
-        ['<CR>'] = cmp.mapping.confirm {
-            behavior = cmp.ConfirmBehavior.Replace,
-            select = true,
-        },
-        ['<Tab>'] = cmp.mapping(function(fallback)
-            if cmp.visible() then
-                cmp.select_next_item()
-            elseif luasnip.expand_or_jumpable() then
+        ['<C-y>'] = cmp.mapping.confirm { select = true },
+        ['<C-Space>'] = cmp.mapping.complete {},
+        ['<C-l>'] = cmp.mapping(function()
+            if luasnip.expand_or_locally_jumpable() then
                 luasnip.expand_or_jump()
-            else
-                fallback()
             end
         end, { 'i', 's' }),
-        ['<S-Tab>'] = cmp.mapping(function(fallback)
-            if cmp.visible() then
-                cmp.select_prev_item()
-            elseif luasnip.jumpable(-1) then
+        ['<C-h>'] = cmp.mapping(function()
+            if luasnip.locally_jumpable(-1) then
                 luasnip.jump(-1)
-            else
-                fallback()
             end
         end, { 'i', 's' }),
-    }),
+    },
     sources = {
         { name = 'nvim_lsp' },
         { name = 'luasnip' },
@@ -236,6 +203,8 @@ null_ls.setup({
     },
     on_attach = enable_formatting
 })
+
+local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
 require 'rust-tools'.setup({
     server = {
@@ -317,10 +286,8 @@ require 'lspconfig'.lua_ls.setup {
         if not vim.loop.fs_stat(path .. '/.luarc.json') and not vim.loop.fs_stat(path .. '/.luarc.jsonc') then
             client.config.settings = vim.tbl_deep_extend('force', client.config.settings.Lua, {
                 runtime = {
-                    -- Tell the language server which version of Lua you're using (most likely LuaJIT in the case of Neovim)
                     version = 'LuaJIT'
                 },
-                -- Make the server aware of Neovim runtime files
                 workspace = {
                     library = { vim.env.VIMRUNTIME }
                     -- or pull in all of 'runtimepath'. NOTE: this is a lot slower
