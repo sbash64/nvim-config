@@ -224,6 +224,12 @@ require 'lspconfig'.ruff_lsp.setup {
     capabilities = capabilities
 }
 
+require 'lspconfig'.fish_lsp.setup {
+    on_attach = enable_lsp_keymaps_and_formatting,
+    capabilities = capabilities,
+    cmd = { "/home/seth/installed/fish-lsp/bin/fish-lsp", "start" }
+}
+
 require 'lspconfig'.clangd.setup {
     on_attach = enable_lsp_keymaps_and_formatting,
     capabilities = capabilities,
