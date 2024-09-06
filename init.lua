@@ -254,7 +254,7 @@ require 'lspconfig'.sourcekit.setup {
     filetypes = { "swift" }
 }
 
-require 'lspconfig'.tsserver.setup {
+require 'lspconfig'.ts_ls.setup {
     on_attach = enable_lsp_keymaps,
     capabilities = capabilities,
     cmd = { "/home/seth/installed/npm-packages/bin/typescript-language-server", "--stdio" }
