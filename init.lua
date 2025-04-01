@@ -50,9 +50,13 @@ require("lazy").setup({
     },
     { 'nvim-telescope/telescope.nvim', branch = '0.1.x', dependencies = { 'nvim-lua/plenary.nvim' } },
     'nvim-lualine/lualine.nvim',
-    'simrat39/rust-tools.nvim',
     'nvimtools/none-ls.nvim',
     'lewis6991/gitsigns.nvim',
+    {
+        'mrcjkb/rustaceanvim',
+        version = '^5', -- Recommended
+        lazy = false,   -- This plugin is already lazy
+    }
 }
 )
 
@@ -211,12 +215,12 @@ null_ls.setup({
 
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
-require 'rust-tools'.setup({
+vim.g.rustaceanvim = {
     server = {
         on_attach = enable_lsp_keymaps_and_formatting,
         capabilities = capabilities
     }
-})
+}
 
 require 'lspconfig'.pyright.setup {
     on_attach = enable_lsp_keymaps,
