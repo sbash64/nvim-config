@@ -269,10 +269,10 @@ require 'lspconfig'.ts_ls.setup {
     cmd = { "/home/seth/installed/npm-packages/bin/typescript-language-server", "--stdio" }
 }
 
---require 'lspconfig'.eslint.setup {
---    capabilities = capabilities,
---    cmd = { "/home/seth/installed/npm-packages/bin/vscode-eslint-language-server", "--stdio" }
---}
+require 'lspconfig'.eslint.setup {
+    capabilities = capabilities,
+    cmd = { "/home/seth/installed/npm-packages/bin/vscode-eslint-language-server", "--stdio" }
+}
 
 require 'lspconfig'.jsonls.setup {
     on_attach = enable_lsp_keymaps,
