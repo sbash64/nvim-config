@@ -69,11 +69,11 @@ end
 
 vim.diagnostic.config({
     virtual_text = {
-        source = "always",
+        source = true,
         format = diagnostic_format,
     },
     float = {
-        source = "always",
+        source = true,
         format = diagnostic_format,
     },
 })
