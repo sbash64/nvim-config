@@ -18,6 +18,8 @@ vim.opt.scrolloff = 5
 vim.opt.smartindent = true
 vim.opt.relativenumber = true
 
+vim.opt.showmode = false
+
 vim.keymap.set("n", "<leader>bd", "<cmd>bd<CR>")
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
