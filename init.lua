@@ -21,7 +21,7 @@ vim.opt.relativenumber = true
 vim.keymap.set("n", "<leader>bd", "<cmd>bd<CR>")
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not (vim.uv or vim.loop).fs_stat(lazypath) then
+if not vim.uv.fs_stat(lazypath) then
     local lazyrepo = "https://github.com/folke/lazy.nvim.git"
     local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
     if vim.v.shell_error ~= 0 then
@@ -171,7 +171,7 @@ local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
 
 local enable_formatting = function(client, bufnr)
     local bufopts = { noremap = true, silent = true, buffer = bufnr }
-    if client.supports_method("textDocument/formatting") then
+    if client:supports_method("textDocument/formatting") then
         vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
         vim.api.nvim_create_autocmd("BufWritePre", {
             group = augroup,
@@ -298,7 +298,7 @@ require 'lspconfig'.lua_ls.setup {
     cmd = { "/home/seth/installed/lua-language-server-3.10.5/bin/lua-language-server" },
     on_init = function(client)
         local path = client.workspace_folders[1].name
-        if vim.loop.fs_stat(path .. '/.luarc.json') or vim.loop.fs_stat(path .. '/.luarc.jsonc') then
+        if vim.uv.fs_stat(path .. '/.luarc.json') or vim.uv.fs_stat(path .. '/.luarc.jsonc') then
             return
         end
 
