@@ -5,7 +5,9 @@ vim.wo.number = true
 vim.o.ignorecase = true
 vim.o.smartcase = true
 vim.o.termguicolors = true
-vim.o.clipboard = 'unnamedplus'
+vim.schedule(function()
+    vim.o.clipboard = 'unnamedplus'
+end)
 
 vim.opt.tabstop = 4
 vim.opt.softtabstop = 4
@@ -40,24 +42,71 @@ vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
     'neovim/nvim-lspconfig',
-    'hrsh7th/nvim-cmp',
-    'hrsh7th/cmp-nvim-lsp',
-    'saadparwaiz1/cmp_luasnip',
-    'L3MON4D3/LuaSnip',
     'lunarvim/darkplus.nvim',
-    'ckipp01/stylua-nvim',
     {
         'nvim-treesitter/nvim-treesitter',
         build = ':TSUpdate'
     },
     { 'nvim-telescope/telescope.nvim', branch = '0.1.x', dependencies = { 'nvim-lua/plenary.nvim' } },
     'nvim-lualine/lualine.nvim',
-    'nvimtools/none-ls.nvim',
     'lewis6991/gitsigns.nvim',
     {
         'mrcjkb/rustaceanvim',
-        version = '^5', -- Recommended
+        version = '^6', -- Recommended
         lazy = false,   -- This plugin is already lazy
+    },
+    {
+        'saghen/blink.cmp',
+        -- optional: provides snippets for the snippet source
+        dependencies = { 'rafamadriz/friendly-snippets' },
+
+        -- use a release tag to download pre-built binaries
+        version = '1.*',
+        -- AND/OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
+        -- build = 'cargo build --release',
+        -- If you use nix, you can build from source using latest nightly rust with:
+        -- build = 'nix run .#build-plugin',
+
+        ---@module 'blink.cmp'
+        ---@type blink.cmp.Config
+        opts = {
+            -- 'default' (recommended) for mappings similar to built-in completions (C-y to accept)
+            -- 'super-tab' for mappings similar to vscode (tab to accept)
+            -- 'enter' for enter to accept
+            -- 'none' for no mappings
+            --
+            -- All presets have the following mappings:
+            -- C-space: Open menu or open docs if already open
+            -- C-n/C-p or Up/Down: Select next/previous item
+            -- C-e: Hide menu
+            -- C-k: Toggle signature help (if signature.enabled = true)
+            --
+            -- See :h blink-cmp-config-keymap for defining your own keymap
+            keymap = { preset = 'default' },
+
+            appearance = {
+                -- 'mono' (default) for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
+                -- Adjusts spacing to ensure icons are aligned
+                nerd_font_variant = 'mono'
+            },
+
+            -- (Default) Only show the documentation popup when manually triggered
+            completion = { documentation = { auto_show = false } },
+
+            -- Default list of enabled providers defined so that you can extend it
+            -- elsewhere in your config, without redefining it, due to `opts_extend`
+            sources = {
+                default = { 'lsp', 'path', 'snippets', 'buffer' },
+            },
+
+            -- (Default) Rust fuzzy matcher for typo resistance and significantly better performance
+            -- You may use a lua implementation instead by using `implementation = "lua"` or fallback to the lua implementation,
+            -- when the Rust fuzzy matcher is not available, by using `implementation = "prefer_rust"`
+            --
+            -- See the fuzzy documentation for more information
+            fuzzy = { implementation = "prefer_rust_with_warning" }
+        },
+        opts_extend = { "sources.default" }
     }
 }
 )
@@ -107,227 +156,101 @@ vim.keymap.set('n', '<leader>sw', require('telescope.builtin').grep_string, { de
 vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc = '[S]earch by [G]rep' })
 vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
 
-local luasnip = require 'luasnip'
-luasnip.config.setup {}
-
-local cmp = require 'cmp'
-cmp.setup {
-    snippet = {
-        expand = function(args)
-            luasnip.lsp_expand(args.body)
-        end,
-    },
-    mapping = cmp.mapping.preset.insert {
-        ['<C-n>'] = cmp.mapping.select_next_item(),
-        ['<C-p>'] = cmp.mapping.select_prev_item(),
-        ['<C-b>'] = cmp.mapping.scroll_docs(-4),
-        ['<C-f>'] = cmp.mapping.scroll_docs(4),
-        ['<C-y>'] = cmp.mapping.confirm { select = true },
-        ['<C-Space>'] = cmp.mapping.complete {},
-        ['<C-l>'] = cmp.mapping(function()
-            if luasnip.expand_or_locally_jumpable() then
-                luasnip.expand_or_jump()
-            end
-        end, { 'i', 's' }),
-        ['<C-h>'] = cmp.mapping(function()
-            if luasnip.locally_jumpable(-1) then
-                luasnip.jump(-1)
-            end
-        end, { 'i', 's' }),
-    },
-    sources = {
-        { name = 'nvim_lsp' },
-        { name = 'luasnip' },
-    },
-}
-
 local opts = { noremap = true, silent = true }
-vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, opts)
-vim.keymap.set('n', '[d', function() vim.diagnostic.jump({ count = -1, float = true }) end, opts)
-vim.keymap.set('n', ']d', function() vim.diagnostic.jump({ count = 1, float = true }) end, opts)
 vim.keymap.set('n', '[e',
     function() vim.diagnostic.jump({ count = -1, float = true, severity = vim.diagnostic.severity.ERROR }) end, opts)
 vim.keymap.set('n', ']e',
     function() vim.diagnostic.jump({ count = 1, float = true, severity = vim.diagnostic.severity.ERROR }) end, opts)
-vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, opts)
 
-local enable_lsp_keymaps = function(client, bufnr)
-    local bufopts = { noremap = true, silent = true, buffer = bufnr }
-    vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
-    vim.keymap.set('n', 'gd', require('telescope.builtin').lsp_definitions, bufopts)
-    vim.keymap.set('n', 'K', vim.lsp.buf.hover, bufopts)
-    vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, bufopts)
-    vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, bufopts)
-    vim.keymap.set('n', '<leader>wa', vim.lsp.buf.add_workspace_folder, bufopts)
-    vim.keymap.set('n', '<leader>wr', vim.lsp.buf.remove_workspace_folder, bufopts)
-    vim.keymap.set('n', '<leader>wl', function()
-        print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
-    end, bufopts)
-    vim.keymap.set('n', '<leader>D', vim.lsp.buf.type_definition, bufopts)
-    vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, bufopts)
-    vim.keymap.set({ 'v', 'n' }, '<leader>la', vim.lsp.buf.code_action, bufopts)
-    vim.keymap.set('n', 'gr', require('telescope.builtin').lsp_references, bufopts)
-end
-
-local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
-
-local enable_formatting = function(client, bufnr)
-    local bufopts = { noremap = true, silent = true, buffer = bufnr }
-    if client:supports_method("textDocument/formatting") then
-        vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
-        vim.api.nvim_create_autocmd("BufWritePre", {
-            group = augroup,
-            buffer = bufnr,
-            callback = function()
-                vim.lsp.buf.format({
-                    filter = function(candidate)
-                        return client.name == candidate.name
-                    end,
-                    bufnr = bufnr
-                })
-            end,
-        })
-        vim.keymap.set('n', '<leader>f', function()
-            vim.lsp.buf.format({
-                filter = function(candidate)
-                    return client.name == candidate.name
+vim.api.nvim_create_autocmd('LspAttach', {
+    group = vim.api.nvim_create_augroup('my.lsp', {}),
+    callback = function(args)
+        local client = assert(vim.lsp.get_client_by_id(args.data.client_id))
+        -- Not sure how vim.lsp.completion works with or competes against blink.cmp...
+        --
+        -- Enable auto-completion. Note: Use CTRL-Y to select an item. |complete_CTRL-Y|
+        --if client:supports_method('textDocument/completion') then
+        -- Optional: trigger autocompletion on EVERY keypress. May be slow!
+        -- local chars = {}; for i = 32, 126 do table.insert(chars, string.char(i)) end
+        -- client.server_capabilities.completionProvider.triggerCharacters = chars
+        --vim.lsp.completion.enable(true, client.id, args.buf, { autotrigger = true })
+        --end
+        --
+        -- Auto-format ("lint") on save.
+        -- Usually not needed if server supports "textDocument/willSaveWaitUntil".
+        if not client:supports_method('textDocument/willSaveWaitUntil')
+            and client:supports_method('textDocument/formatting') then
+            vim.api.nvim_create_autocmd('BufWritePre', {
+                group = vim.api.nvim_create_augroup('my.lsp', { clear = false }),
+                buffer = args.buf,
+                callback = function()
+                    vim.lsp.buf.format({ bufnr = args.buf, id = client.id, timeout_ms = 1000 })
                 end,
-                bufnr = bufnr
             })
-        end, bufopts)
-    end
-end
-
-local enable_lsp_keymaps_and_formatting = function(client, bufnr)
-    enable_lsp_keymaps(client, bufnr)
-    enable_formatting(client, bufnr)
-end
-
-local null_ls = require("null-ls")
-
-null_ls.setup({
-    sources = {
-        null_ls.builtins.formatting.prettier,
-        null_ls.builtins.formatting["swift_format"].with({
-            command = "/home/seth/installed/swift-format-508.0.0/swift-format"
-        }),
-    },
-    on_attach = enable_formatting
+        end
+    end,
 })
 
-local capabilities = require('cmp_nvim_lsp').default_capabilities()
-
-vim.g.rustaceanvim = {
-    server = {
-        on_attach = enable_lsp_keymaps_and_formatting,
-        capabilities = capabilities
-    }
-}
-
-require 'lspconfig'.pyright.setup {
-    on_attach = enable_lsp_keymaps,
-    capabilities = capabilities,
-    cmd = { "/home/seth/installed/npm-packages/bin/pyright-langserver", "--stdio" }
-}
-
-require 'lspconfig'.ruff.setup {
-    on_attach = enable_formatting,
-    capabilities = capabilities
-}
-
-require 'lspconfig'.fish_lsp.setup {
-    on_attach = enable_lsp_keymaps_and_formatting,
-    capabilities = capabilities,
-    cmd = { "/home/seth/installed/fish-lsp/bin/fish-lsp", "start" }
-}
-
-require 'lspconfig'.clangd.setup {
-    on_attach = enable_lsp_keymaps_and_formatting,
-    capabilities = capabilities,
-}
-
-require 'lspconfig'.cmake.setup {
-    on_attach = enable_lsp_keymaps_and_formatting,
-    capabilities = capabilities,
-}
-
-require 'lspconfig'.bashls.setup {
-    on_attach = enable_lsp_keymaps_and_formatting,
-    capabilities = capabilities,
-    cmd = { "/home/seth/installed/npm-packages/bin/bash-language-server", "start" }
-}
-
-require 'lspconfig'.sourcekit.setup {
-    on_attach = enable_lsp_keymaps,
-    capabilities = capabilities,
-    cmd = { "/home/seth/installed/swift-5.8-RELEASE-centos7/usr/bin/sourcekit-lsp" },
-    cmd_env = { LD_LIBRARY_PATH = "/home/seth/installed/libtinfo-5", },
-    filetypes = { "swift" }
-}
-
-require 'lspconfig'.ts_ls.setup {
-    on_attach = enable_lsp_keymaps,
-    capabilities = capabilities,
-    cmd = { "/home/seth/installed/npm-packages/bin/typescript-language-server", "--stdio" }
-}
-
-require 'lspconfig'.eslint.setup {
-    capabilities = capabilities,
-    cmd = { "/home/seth/installed/npm-packages/bin/vscode-eslint-language-server", "--stdio" }
-}
-
-require 'lspconfig'.jsonls.setup {
-    on_attach = enable_lsp_keymaps,
-    capabilities = capabilities,
-    cmd = { "/home/seth/installed/npm-packages/bin/vscode-json-language-server", "--stdio" }
-}
-
-require 'lspconfig'.html.setup {
-    on_attach = enable_lsp_keymaps,
-    capabilities = capabilities,
-    cmd = { "/home/seth/installed/npm-packages/bin/vscode-html-language-server", "--stdio" }
-}
-
-require 'lspconfig'.cssls.setup {
-    on_attach = enable_lsp_keymaps,
-    capabilities = capabilities,
-    cmd = { "/home/seth/installed/npm-packages/bin/vscode-css-language-server", "--stdio" }
-}
-
-require 'lspconfig'.lua_ls.setup {
-    on_attach = enable_lsp_keymaps_and_formatting,
-    capabilities = capabilities,
-    cmd = { "/home/seth/installed/lua-language-server-3.10.5/bin/lua-language-server" },
+vim.lsp.config('lua_ls', {
     on_init = function(client)
-        local path = client.workspace_folders[1].name
-        if vim.uv.fs_stat(path .. '/.luarc.json') or vim.uv.fs_stat(path .. '/.luarc.jsonc') then
-            return
+        if client.workspace_folders then
+            local path = client.workspace_folders[1].name
+            if
+                path ~= vim.fn.stdpath('config')
+                and (vim.uv.fs_stat(path .. '/.luarc.json') or vim.uv.fs_stat(path .. '/.luarc.jsonc'))
+            then
+                return
+            end
         end
 
         client.config.settings.Lua = vim.tbl_deep_extend('force', client.config.settings.Lua, {
             runtime = {
-                -- Tell the language server which version of Lua you're using
-                -- (most likely LuaJIT in the case of Neovim)
-                version = 'LuaJIT'
+                -- Tell the language server which version of Lua you're using (most
+                -- likely LuaJIT in the case of Neovim)
+                version = 'LuaJIT',
+                -- Tell the language server how to find Lua modules same way as Neovim
+                -- (see `:h lua-module-load`)
+                path = {
+                    'lua/?.lua',
+                    'lua/?/init.lua',
+                },
             },
             -- Make the server aware of Neovim runtime files
             workspace = {
                 checkThirdParty = false,
                 library = {
                     vim.env.VIMRUNTIME
-                    -- Depending on the usage, you might want to add additional paths here.
-                    -- "${3rd}/luv/library"
-                    -- "${3rd}/busted/library",
+                    -- Depending on the usage, you might want to add additional paths
+                    -- here.
+                    -- '${3rd}/luv/library'
+                    -- '${3rd}/busted/library'
                 }
-                -- or pull in all of 'runtimepath'. NOTE: this is a lot slower
-                -- library = vim.api.nvim_get_runtime_file("", true)
+                -- Or pull in all of 'runtimepath'.
+                -- NOTE: this is a lot slower and will cause issues when working on
+                -- your own configuration.
+                -- See https://github.com/neovim/nvim-lspconfig/issues/3189
+                -- library = {
+                --   vim.api.nvim_get_runtime_file('', true),
+                -- }
             }
         })
     end,
     settings = {
         Lua = {}
     }
-}
+})
+
+vim.lsp.enable('lua_ls')
+vim.lsp.enable('pyright')
+vim.lsp.enable('ruff')
+vim.lsp.enable('clangd')
+vim.lsp.enable('cmake')
+vim.lsp.enable('bashls')
+vim.lsp.enable('ts_ls')
+vim.lsp.enable('biome')
+vim.lsp.enable('jsonls')
+vim.lsp.enable('html')
+vim.lsp.enable('cssls')
 
 require 'nvim-treesitter.configs'.setup {
     highlight = {
