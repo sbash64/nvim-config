@@ -167,7 +167,10 @@ vim.api.nvim_create_autocmd('LspAttach', {
     callback = function(args)
         local client = assert(vim.lsp.get_client_by_id(args.data.client_id))
         if (not client:supports_method('textDocument/willSaveWaitUntil')
-                and client:supports_method('textDocument/formatting') and client.name ~= "ts_ls")
+                and client:supports_method('textDocument/formatting')
+                and client.name ~= "ts_ls"
+                and client.name ~= "jsonls"
+                and client.name ~= "cssls")
             or client.name == "biome"
         then
             print('Enabling formatting for ' .. client.name)
