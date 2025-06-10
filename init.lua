@@ -167,6 +167,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
     callback = function(args)
         local client = assert(vim.lsp.get_client_by_id(args.data.client_id))
         print('Attaching to ' .. client.name)
+        vim.keymap.set('n', 'gd', vim.lsp.buf.definition, { buffer = args.buf, desc = "LSP: [g]o to [d]efinition" })
         if (not client:supports_method('textDocument/willSaveWaitUntil')
                 and client:supports_method('textDocument/formatting')
                 and client.name ~= "ts_ls"
