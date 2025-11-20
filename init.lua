@@ -171,6 +171,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
                 and client:supports_method('textDocument/formatting')
                 and client.name ~= "ts_ls"
                 and client.name ~= "jsonls"
+                and client.name ~= "html"
                 and client.name ~= "cssls")
             or client.name == "biome"
         then
