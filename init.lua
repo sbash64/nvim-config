@@ -175,13 +175,8 @@ vim.api.nvim_create_autocmd('LspAttach', {
                 and client.name ~= "cssls")
             or client.name == "biome"
         then
-            vim.api.nvim_create_autocmd('BufWritePre', {
-                group = vim.api.nvim_create_augroup('my.lsp', { clear = false }),
-                buffer = args.buf,
-                callback = function()
-                    vim.lsp.buf.format({ bufnr = args.buf, id = client.id, timeout_ms = 1000 })
-                end,
-            })
+            vim.keymap.set('n', '<leader>f', vim.lsp.buf.format,
+                { buffer = args.buf, desc = "LSP: [f]ormat" })
         end
     end,
 })
