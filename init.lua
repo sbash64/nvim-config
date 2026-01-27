@@ -243,13 +243,4 @@ vim.lsp.enable('jsonls')
 vim.lsp.enable('html')
 vim.lsp.enable('cssls')
 
-require 'nvim-treesitter.configs'.setup {
-    highlight = {
-        enable = true,
-    },
-    incremental_selection = {
-        enable = true,
-    }
-}
-
 vim.cmd("colorscheme darkplus")
