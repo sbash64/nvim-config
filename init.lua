@@ -47,7 +47,15 @@ require("lazy").setup({
         'nvim-treesitter/nvim-treesitter',
         build = ':TSUpdate'
     },
-    { 'nvim-telescope/telescope.nvim', branch = '0.1.x', dependencies = { 'nvim-lua/plenary.nvim' } },
+    {
+        'nvim-telescope/telescope.nvim',
+        version = '*',
+        dependencies = {
+            'nvim-lua/plenary.nvim',
+            -- optional but recommended
+            { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' },
+        }
+    },
     'nvim-lualine/lualine.nvim',
     'lewis6991/gitsigns.nvim',
     {
