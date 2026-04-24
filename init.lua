@@ -44,10 +44,6 @@ require("lazy").setup({
     'neovim/nvim-lspconfig',
     'lunarvim/darkplus.nvim',
     {
-        'nvim-treesitter/nvim-treesitter',
-        build = ':TSUpdate'
-    },
-    {
         'nvim-telescope/telescope.nvim',
         version = '*',
         dependencies = {
