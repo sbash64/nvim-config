@@ -182,6 +182,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
                 and client.name ~= "html"
                 and client.name ~= "cssls")
             or client.name == "biome"
+            or client.name == "zls"
         then
             vim.keymap.set('n', '<leader>f',
                 function() vim.lsp.buf.format({ bufnr = args.buf, id = client.id, timeout_ms = 1000 }) end,
@@ -239,6 +240,7 @@ vim.lsp.config('lua_ls', {
     }
 })
 
+vim.lsp.config('zls', { cmd = { "/home/seth/installed/zls" }})
 vim.lsp.enable('zls')
 vim.lsp.enable('lua_ls')
 vim.lsp.enable('ty')
